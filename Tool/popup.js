@@ -5,7 +5,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // ========== MANAGER INITIALIZATION ==========
-    let profileManager, undoRedoManager, settingsManager, linkManager = null;
+    let profileManager = null;
+    let undoRedoManager = null;
+    let settingsManager = null;
+    let linkManager = null;
 
     // Wait for managers to load
     setTimeout(() => {
@@ -28,21 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPinned = false;
     const pinBtn = document.getElementById('pinBtn');
 
-    pinBtn.addEventListener('click', () => {
-        isPinned = !isPinned;
-        pinBtn.classList.toggle('active', isPinned);
-        pinBtn.textContent = isPinned ? '📍' : '📌';
+    if (pinBtn) {
+        pinBtn.addEventListener('click', () => {
+            isPinned = !isPinned;
+            pinBtn.classList.toggle('active', isPinned);
+            pinBtn.textContent = isPinned ? '📍' : '📌';
 
-        if (isPinned) {
-            document.addEventListener('click', preventClose);
-            document.addEventListener('blur', preventClose);
-        } else {
-            document.removeEventListener('click', preventClose);
-            document.removeEventListener('blur', preventClose);
-        }
+            if (isPinned) {
+                document.addEventListener('click', preventClose);
+                document.addEventListener('blur', preventClose);
+            } else {
+                document.removeEventListener('click', preventClose);
+                document.removeEventListener('blur', preventClose);
+            }
 
-        updateStatus(isPinned ? 'Popup đã được ghim' : 'Popup không còn ghim');
-    });
+            updateStatus(isPinned ? 'Popup đã được ghim' : 'Popup không còn ghim');
+        });
+    }
 
     function preventClose(e) {
         e.stopPropagation();
@@ -52,7 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.collapsible-header').forEach(header => {
         header.addEventListener('click', () => {
             const collapsible = header.parentElement;
-            collapsible.classList.toggle('active');
+            if (collapsible) {
+                collapsible.classList.toggle('active');
+            }
         });
     });
 
@@ -95,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyFormData(data) {
+        if (!data) return;
         if (document.getElementById('username')) document.getElementById('username').value = data.username || '';
         if (document.getElementById('password')) document.getElementById('password').value = data.password || '';
         if (document.getElementById('fullName')) document.getElementById('fullName').value = data.fullName || '';
@@ -372,17 +380,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let delay = 100;
                 let autoPhone84 = false;
+                let captchaAPIKey = '';
 
                 if (settingsManager) {
                     const formSettings = settingsManager.getFormSettings();
                     delay = formSettings.delay;
                     autoPhone84 = formSettings.autoPhone84;
+                    const captchaSettings = settingsManager.getCaptchaSettings();
+                    captchaAPIKey = captchaSettings.apiKey;
                 }
 
                 await chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: autoRegisterScript,
-                    args: [data, delay, autoPhone84]
+                    args: [data, delay, autoPhone84, captchaAPIKey]
                 });
 
                 saveAccountToHistory(data, tab.url, true);
@@ -408,11 +419,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let delay = 100;
                 let autoPhone84 = false;
+                let captchaAPIKey = '';
 
                 if (settingsManager) {
                     const formSettings = settingsManager.getFormSettings();
                     delay = formSettings.delay;
                     autoPhone84 = formSettings.autoPhone84;
+                    const captchaSettings = settingsManager.getCaptchaSettings();
+                    captchaAPIKey = captchaSettings.apiKey;
                 }
 
                 const tabs = await chrome.tabs.query({});
@@ -429,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await chrome.scripting.executeScript({
                             target: { tabId: tab.id },
                             func: autoRegisterScript,
-                            args: [data, delay, autoPhone84]
+                            args: [data, delay, autoPhone84, captchaAPIKey]
                         });
 
                         saveAccountToHistory(data, tab.url, true);
@@ -453,12 +467,14 @@ document.addEventListener('DOMContentLoaded', () => {
         exportTxtBtn.addEventListener('click', () => {
             chrome.storage.local.get(['accountsHistory'], (result) => {
                 const accounts = result.accountsHistory || [];
-                const exported = ExportManager.exportAccounts(accounts, 'txt');
-                if (exported) {
-                    ExportManager.downloadFile(exported.content, exported.filename, exported.type);
-                    updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (TXT)`);
-                } else {
-                    updateStatus('❌ Không có dữ liệu để xuất');
+                if (typeof ExportManager !== 'undefined') {
+                    const exported = ExportManager.exportAccounts(accounts, 'txt');
+                    if (exported) {
+                        ExportManager.downloadFile(exported.content, exported.filename, exported.type);
+                        updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (TXT)`);
+                    } else {
+                        updateStatus('❌ Không có dữ liệu để xuất');
+                    }
                 }
             });
         });
@@ -469,12 +485,14 @@ document.addEventListener('DOMContentLoaded', () => {
         exportCsvBtn.addEventListener('click', () => {
             chrome.storage.local.get(['accountsHistory'], (result) => {
                 const accounts = result.accountsHistory || [];
-                const exported = ExportManager.exportAccounts(accounts, 'csv');
-                if (exported) {
-                    ExportManager.downloadFile(exported.content, exported.filename, exported.type);
-                    updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (CSV)`);
-                } else {
-                    updateStatus('❌ Không có dữ liệu để xuất');
+                if (typeof ExportManager !== 'undefined') {
+                    const exported = ExportManager.exportAccounts(accounts, 'csv');
+                    if (exported) {
+                        ExportManager.downloadFile(exported.content, exported.filename, exported.type);
+                        updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (CSV)`);
+                    } else {
+                        updateStatus('❌ Không có dữ liệu để xuất');
+                    }
                 }
             });
         });
@@ -485,271 +503,268 @@ document.addEventListener('DOMContentLoaded', () => {
         exportJsonBtn.addEventListener('click', () => {
             chrome.storage.local.get(['accountsHistory'], (result) => {
                 const accounts = result.accountsHistory || [];
-                const exported = ExportManager.exportAccounts(accounts, 'json');
-                if (exported) {
-                    ExportManager.downloadFile(exported.content, exported.filename, exported.type);
-                    updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (JSON)`);
-                } else {
-                    updateStatus('❌ Không có dữ liệu để xuất');
+                if (typeof ExportManager !== 'undefined') {
+                    const exported = ExportManager.exportAccounts(accounts, 'json');
+                    if (exported) {
+                        ExportManager.downloadFile(exported.content, exported.filename, exported.type);
+                        updateStatus(`✅ Đã xuất ${accounts.length} tài khoản (JSON)`);
+                    } else {
+                        updateStatus('❌ Không có dữ liệu để xuất');
+                    }
                 }
             });
         });
     }
 
-
-  /**
-     * Auto register script (returns function to be executed in content script)
-     */
-    getAutoRegisterScript() {
-        return async function (data, delay, autoPhone84, apiKey) {
-            const fillField = async (selectors, value) => {
-                if (!value) return false;
-                for (const selector of selectors) {
-                    const el = document.querySelector(selector);
-                    if (el && el.offsetParent !== null) { // Check if visible
-                        el.focus();
-                        el.value = value;
-                        ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
-                            el.dispatchEvent(new Event(eventType, { bubbles: true }));
-                        });
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return true;
-                    }
-                }
-                return false;
-            };
-
-            const getImageAsBase64 = async (imgElement) => {
-                try {
-                    if (imgElement.tagName === 'IMG' && imgElement.offsetParent !== null) {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = imgElement.width;
-                        canvas.height = imgElement.height;
-                        const ctx = canvas.getContext('2d');
-
-                        if (!imgElement.complete) {
-                            await new Promise((resolve) => {
-                                imgElement.onload = resolve;
-                                imgElement.onerror = resolve;
-                            });
-                        }
-
-                        ctx.drawImage(imgElement, 0, 0);
-                        return canvas.toDataURL('image/png');
-                    }
-                } catch (error) {
-                    console.log('Lỗi chuyển ảnh sang Base64:', error);
-                }
-                return null;
-            };
-
-            const solveCaptcha = async () => {
-                try {
-                    const captchaInput = document.querySelector(
-                        `input[formcontrolname='checkCode'],
-                         input[ng-model='$ctrl.code'],
-                         input[name='verificationCode'],
-                         input[name='verifyCode'],
-                         input[name='captcha'],
-                         input[name='code']`
-                    ) || [...document.querySelectorAll('input[type="text"]')].find(el =>
-                        /captcha|xác minh|xác nhận|verification|verify|otp/i.test(el.placeholder || '')
-                    );
-
-                    if (!captchaInput) return true;
-
-                    await captchaInput.click();
-                    await new Promise(resolve => setTimeout(resolve, 500));
-
-                    let captchaImg = document.querySelector(
-                        `img[ng-src*='data:image/png;base64'],
-                         img[src*='data:image/png;base64'],
-                         img.captcha,
-                         img[alt*='captcha'],
-                         img[alt*='Captcha']`
-                    );
-
-                    // Try to find refresh button if captcha not found
-                    if (!captchaImg) {
-                        const refreshBtn = document.querySelector(
-                            `i.fas.fa-sync.refresh,
-                             .refresh,
-                             button[class*='refresh'],
-                             [class*='reload']`
-                        );
-                        if (refreshBtn) {
-                            refreshBtn.click();
-                            await new Promise(resolve => setTimeout(resolve, 1500));
-                            captchaImg = document.querySelector(
-                                `img[ng-src*='data:image/png;base64'],
-                                 img[src*='data:image/png;base64'],
-                                 img.captcha,
-                                 img[alt*='captcha']`
-                            );
-                        }
-                    }
-
-                    if (!captchaImg) return true;
-
-                    let base64Data = null;
-                    const imgSrc = captchaImg.getAttribute('ng-src') || captchaImg.getAttribute('src');
-
-                    if (imgSrc && imgSrc.includes('data:image')) {
-                        base64Data = imgSrc;
-                        if (base64Data.includes(',')) {
-                            base64Data = base64Data.split(',')[1];
-                        }
-                    } else {
-                        base64Data = await getImageAsBase64(captchaImg);
-                        if (base64Data && base64Data.includes(',')) {
-                            base64Data = base64Data.split(',')[1];
-                        }
-                    }
-
-                    if (!base64Data) return true;
-
-                    const response = await fetch('https://autocaptcha.pro/apiv3/process', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            key: apiKey,
-                            type: 'imagetotext',
-                            img: `data:image/png;base64,${base64Data}`,
-                            numeric: 2,
-                            min_len: 4,
-                            max_len: 4
-                        })
+    // ========== AUTO REGISTER SCRIPT ==========
+    async function autoRegisterScript(data, delay = 100, autoPhone84 = false, apiKey = '') {
+        const fillField = async (selectors, value) => {
+            if (!value) return false;
+            for (const selector of selectors) {
+                const el = document.querySelector(selector);
+                if (el && el.offsetParent !== null) { // Check if visible
+                    el.focus();
+                    el.value = value;
+                    ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
+                        el.dispatchEvent(new Event(eventType, { bubbles: true }));
                     });
-
-                    if (!response.ok) return true;
-
-                    const result = await response.json();
-
-                    if (result.success === 1 && result.captcha && result.captcha.length >= 4) {
-                        const captchaText = result.captcha.toString().substring(0, 4).toUpperCase();
-                        captchaInput.focus();
-                        captchaInput.value = captchaText;
-                        ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
-                            captchaInput.dispatchEvent(new Event(eventType, { bubbles: true }));
-                        });
-                        return true;
-                    }
-                    return false;
-                } catch (error) {
-                    console.log('Lỗi khi giải CAPTCHA:', error.message);
-                    return false;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return true;
                 }
-            };
+            }
+            return false;
+        };
 
+        const getImageAsBase64 = async (imgElement) => {
             try {
-                await fillField([
-                    "input[name='username']",
-                    "input.form-control.username",
-                    "input[placeholder='Tên người dùng']",
-                    "input[placeholder*='tài khoản']",
-                    "input[placeholder='Tên Đăng Nhập']",
-                    "input#username",
-                    "input[data-input-name='account']",
-                    "input#playerid",
-                    "input[placeholder*='Số điện thoại/Tên tài khoản']",
-                    "input[placeholder='Tên đăng nhập']"
-                ], data.username);
+                if (imgElement.tagName === 'IMG' && imgElement.offsetParent !== null) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgElement.width;
+                    canvas.height = imgElement.height;
+                    const ctx = canvas.getContext('2d');
 
-                await fillField([
-                    "input[name='password']",
-                    "input[type='password'][name='password']",
-                    "input.form-control.password",
-                    "input[type='password']:not([formcontrolname='confirmPassword'])",
-                    "input[placeholder='Mật khẩu']",
-                    "input#password[type='text']",
-                    "input#password",
-                    "input[data-input-name='userpass']",
-                    "input[placeholder='Nhập mật khẩu']",
-                    "input[type='password']"
-                ], data.password);
+                    if (!imgElement.complete) {
+                        await new Promise((resolve) => {
+                            imgElement.onload = resolve;
+                            imgElement.onerror = resolve;
+                        });
+                    }
 
-                await fillField(["input[formcontrolname='confirmPassword']"], data.password);
-                await fillField(["input[formcontrolname='moneyPassword']"], "123456");
-
-                await fillField([
-                    "input[name='payeeName']",
-                    "input.reg-payeeName",
-                    "input[formcontrolname='name']",
-                    "input[for='fullname']",
-                    "input.standard-input[placeholder*='Họ']",
-                    "input[data-input-name='realName']",
-                    "input#firstname",
-                    "input[placeholder*='họ tên']",
-                    "input[placeholder*='Họ tên']",
-                    "input[placeholder*='đầy đủ họ tên']"
-                ], data.fullName);
-
-                let phoneValue = data.phone;
-                if (autoPhone84 && phoneValue && !phoneValue.startsWith('84')) {
-                    phoneValue = '84' + phoneValue.replace(/^0/, '');
+                    ctx.drawImage(imgElement, 0, 0);
+                    return canvas.toDataURL('image/png');
                 }
+            } catch (error) {
+                console.log('Lỗi chuyển ảnh sang Base64:', error);
+            }
+            return null;
+        };
 
-                await fillField([
-                    "input#email",
-                    "input[type='email']",
-                    "input[placeholder*='Email']",
-                    "input.standard-input.standard-form-col-100",
-                    "input[formcontrolname='email']",
-                    "input[placeholder*='E-mail']",
-                    "input[placeholder*='Địa chỉ E-mail']"
-                ], data.email);
-
-                await fillField([
-                    "input[name='mobileNum1']",
-                    "input.form-mobileNum",
-                    "input[formcontrolname='mobile']",
-                    "input[type='tel']",
-                    "input[placeholder*='Số điện thoại']",
-                    "input[pattern='[0-9]*']",
-                    "input[data-test-id*='telephoneinput']",
-                    "input[autocomplete='tel']",
-                    "input[placeholder*='+84']",
-                    "input[placeholder*='+86']"
-                ], phoneValue);
-
-                await fillField(["input[formcontrolname='birthday']", "input[type='date']"], data.birthdate);
-
-                const checkbox = document.querySelector("input[type='checkbox']");
-                if (checkbox && !checkbox.checked) {
-                    checkbox.click();
-                }
-
-                await solveCaptcha();
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                const submitBtn = document.querySelector(
-                    `button.register-button,
-                     button.submit-btn,
-                     button[type='submit'],
-                     button.login-btn,
-                     button[type='button'].submit-btn,
-                     span[translate='Login_RegisterBtn'],
-                     .ui-button__content,
-                     span.ui-button__text,
-                     button.nrc-button,
-                     button[title=''],
-                     .signup-tag`
+        const solveCaptcha = async () => {
+            try {
+                const captchaInput = document.querySelector(
+                    `input[formcontrolname='checkCode'],
+                     input[ng-model='$ctrl.code'],
+                     input[name='verificationCode'],
+                     input[name='verifyCode'],
+                     input[name='captcha'],
+                     input[name='code']`
+                ) || [...document.querySelectorAll('input[type="text"]')].find(el =>
+                    /captcha|xác minh|xác nhận|verification|verify|otp/i.test(el.placeholder || '')
                 );
 
-                if (submitBtn) {
-                    if (submitBtn.tagName === 'SPAN' || submitBtn.classList.contains('ui-button__content')) {
-                        submitBtn.parentElement?.click();
-                    } else {
-                        submitBtn.click();
+                if (!captchaInput) return true;
+
+                await captchaInput.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                let captchaImg = document.querySelector(
+                    `img[ng-src*='data:image/png;base64'],
+                     img[src*='data:image/png;base64'],
+                     img.captcha,
+                     img[alt*='captcha'],
+                     img[alt*='Captcha']`
+                );
+
+                // Try to find refresh button if captcha not found
+                if (!captchaImg) {
+                    const refreshBtn = document.querySelector(
+                        `i.fas.fa-sync.refresh,
+                         .refresh,
+                         button[class*='refresh'],
+                         [class*='reload']`
+                    );
+                    if (refreshBtn) {
+                        refreshBtn.click();
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        captchaImg = document.querySelector(
+                            `img[ng-src*='data:image/png;base64'],
+                             img[src*='data:image/png;base64'],
+                             img.captcha,
+                             img[alt*='captcha']`
+                        );
                     }
                 }
 
-                return { success: true };
+                if (!captchaImg) return true;
+
+                let base64Data = null;
+                const imgSrc = captchaImg.getAttribute('ng-src') || captchaImg.getAttribute('src');
+
+                if (imgSrc && imgSrc.includes('data:image')) {
+                    base64Data = imgSrc;
+                    if (base64Data.includes(',')) {
+                        base64Data = base64Data.split(',')[1];
+                    }
+                } else {
+                    base64Data = await getImageAsBase64(captchaImg);
+                    if (base64Data && base64Data.includes(',')) {
+                        base64Data = base64Data.split(',')[1];
+                    }
+                }
+
+                if (!base64Data) return true;
+
+                const response = await fetch('https://autocaptcha.pro/apiv3/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        key: apiKey,
+                        type: 'imagetotext',
+                        img: `data:image/png;base64,${base64Data}`,
+                        numeric: 2,
+                        min_len: 4,
+                        max_len: 4
+                    })
+                });
+
+                if (!response.ok) return true;
+
+                const result = await response.json();
+
+                if (result.success === 1 && result.captcha && result.captcha.length >= 4) {
+                    const captchaText = result.captcha.toString().substring(0, 4).toUpperCase();
+                    captchaInput.focus();
+                    captchaInput.value = captchaText;
+                    ['input', 'change', 'keyup', 'blur'].forEach(eventType => {
+                        captchaInput.dispatchEvent(new Event(eventType, { bubbles: true }));
+                    });
+                    return true;
+                }
+                return false;
             } catch (error) {
-                console.log('Lỗi trong autoRegisterScript:', error.message);
-                return { success: false, error: error.message };
+                console.log('Lỗi khi giải CAPTCHA:', error.message);
+                return false;
             }
         };
+
+        try {
+            await fillField([
+                "input[name='username']",
+                "input.form-control.username",
+                "input[placeholder='Tên người dùng']",
+                "input[placeholder*='tài khoản']",
+                "input[placeholder='Tên Đăng Nhập']",
+                "input#username",
+                "input[data-input-name='account']",
+                "input#playerid",
+                "input[placeholder*='Số điện thoại/Tên tài khoản']",
+                "input[placeholder='Tên đăng nhập']"
+            ], data.username);
+
+            await fillField([
+                "input[name='password']",
+                "input[type='password'][name='password']",
+                "input.form-control.password",
+                "input[type='password']:not([formcontrolname='confirmPassword'])",
+                "input[placeholder='Mật khẩu']",
+                "input#password[type='text']",
+                "input#password",
+                "input[data-input-name='userpass']",
+                "input[placeholder='Nhập mật khẩu']",
+                "input[type='password']"
+            ], data.password);
+
+            await fillField(["input[formcontrolname='confirmPassword']"], data.password);
+            await fillField(["input[formcontrolname='moneyPassword']"], "123456");
+
+            await fillField([
+                "input[name='payeeName']",
+                "input.reg-payeeName",
+                "input[formcontrolname='name']",
+                "input[for='fullname']",
+                "input.standard-input[placeholder*='Họ']",
+                "input[data-input-name='realName']",
+                "input#firstname",
+                "input[placeholder*='họ tên']",
+                "input[placeholder*='Họ tên']",
+                "input[placeholder*='đầy đủ họ tên']"
+            ], data.fullName);
+
+            let phoneValue = data.phone;
+            if (autoPhone84 && phoneValue && !phoneValue.startsWith('84')) {
+                phoneValue = '84' + phoneValue.replace(/^0/, '');
+            }
+
+            await fillField([
+                "input#email",
+                "input[type='email']",
+                "input[placeholder*='Email']",
+                "input.standard-input.standard-form-col-100",
+                "input[formcontrolname='email']",
+                "input[placeholder*='E-mail']",
+                "input[placeholder*='Địa chỉ E-mail']"
+            ], data.email);
+
+            await fillField([
+                "input[name='mobileNum1']",
+                "input.form-mobileNum",
+                "input[formcontrolname='mobile']",
+                "input[type='tel']",
+                "input[placeholder*='Số điện thoại']",
+                "input[pattern='[0-9]*']",
+                "input[data-test-id*='telephoneinput']",
+                "input[autocomplete='tel']",
+                "input[placeholder*='+84']",
+                "input[placeholder*='+86']"
+            ], phoneValue);
+
+            await fillField(["input[formcontrolname='birthday']", "input[type='date']"], data.birthdate);
+
+            const checkbox = document.querySelector("input[type='checkbox']");
+            if (checkbox && !checkbox.checked) {
+                checkbox.click();
+            }
+
+            await solveCaptcha();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const submitBtn = document.querySelector(
+                `button.register-button,
+                 button.submit-btn,
+                 button[type='submit'],
+                 button.login-btn,
+                 button[type='button'].submit-btn,
+                 span[translate='Login_RegisterBtn'],
+                 .ui-button__content,
+                 span.ui-button__text,
+                 button.nrc-button,
+                 button[title=''],
+                 .signup-tag`
+            );
+
+            if (submitBtn) {
+                if (submitBtn.tagName === 'SPAN' || submitBtn.classList.contains('ui-button__content')) {
+                    submitBtn.parentElement?.click();
+                } else {
+                    submitBtn.click();
+                }
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.log('Lỗi trong autoRegisterScript:', error.message);
+            return { success: false, error: error.message };
+        }
     }
 
     // ========== GENERATOR FUNCTIONS ==========
