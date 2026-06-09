@@ -1,0 +1,40 @@
+{
+    "manifest_version": 3,
+    "name": "Smart Form Filler Pro",
+    "version": "2.1",
+    "description": "Tự động điền form với quản lý nhiều profile, Undo/Redo, và export đa định dạng",
+    "permissions": [
+        "scripting",
+        "activeTab",
+        "storage",
+        "tabs",
+        "contextMenus",
+        "notifications"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "assets/icon16.png",
+            "48": "assets/icon48.png",
+            "128": "assets/icon128.png"
+        },
+        "default_title": "Smart Form Filler Pro"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "link-manager.js",
+                "content.js"
+            ]
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "host_permissions": [
+        "<all_urls>"
+    ]
+}

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 400px;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+            color: white;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 2px solid #3182ce;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .header-btn.active {
+            background: #48bb78;
+            border-color: #38a169;
+        }
+
+        .container {
+            padding: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .tabs {
+            display: flex;
+            background: #2d3748;
+            margin: 0 0 8px 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 10px;
+            font-weight: 600;
+            color: #a0aec0;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #4a5568;
+        }
+
+        .tab.active {
+            background: #3182ce;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .section {
+            margin-bottom: 8px;
+            background: #2d3748;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #4a5568;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 10px;
+            color: #3182ce;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .input-section {
+            margin-bottom: 6px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: bold;
+            color: #a0aec0;
+            font-size: 9px;
+        }
+
+        .input-section textarea,
+        .input-section input,
+        .input-section select {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #4a5568;
+            border-radius: 2px;
+            font-size: 10px;
+            background: #1a202c;
+            color: #e0e0e0;
+        }
+
+        .input-section textarea {
+            height: 45px;
+            resize: none;
+            font-family: monospace;
+        }
+
+        .input-section input:focus,
+        .input-section textarea:focus,
+        .input-section select:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 4px rgba(49, 130, 206, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 5px 8px;
+            border: none;
+            font-weight: 600;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 10px;
+            flex: 1;
+            min-width: 80px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: #00ffff;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #d69e2e;
+            color: #1a202c;
+        }
+
+        .btn-sm {
+            padding: 3px 6px;
+            min-width: 60px;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .quick-btn {
+            padding: 4px;
+            font-size: 9px;
+        }
+
+        .mini-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin-bottom: 0;
+        }
+
+        .mini-inputs input {
+            font-size: 9px;
+            padding: 3px;
+        }
+
+        .collapsible {
+            margin-bottom: 6px;
+        }
+
+        .collapsible-header {
+            background: #1d2635;
+            padding: 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #4a5568;
+            transition: all 0.2s;
+        }
+
+        .collapsible-header:hover {
+            background: #2d3748;
+            border-color: #3182ce;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 6px 0;
+            border-left: 2px solid #3182ce;
+            margin-left: 4px;
+            padding-left: 6px;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .collapsible-arrow {
+            display: inline-block;
+            transition: transform 0.3s;
+            color: #3182ce;
+        }
+
+        .collapsible.active .collapsible-arrow {
+            transform: rotate(90deg);
+        }
+
+        .status-bar {
+            background: #2d3748;
+            padding: 4px 8px;
+            font-size: 8px;
+            color: #a0aec0;
+            border-top: 1px solid #4a5568;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .stat-card {
+            background: #1a202c;
+            padding: 6px;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 8px;
+            border: 1px solid #4a5568;
+        }
+
+        .stat-number {
+            font-size: 12px;
+            font-weight: bold;
+            color: #3182ce;
+        }
+
+        .link-item {
+            display: flex;
+            padding: 4px;
+            margin: 2px 0;
+            background: #1a202c;
+            border-radius: 3px;
+            font-size: 9px;
+            border: 1px solid #4a5568;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .link-item:hover {
+            background: #2d3748;
+            border-color: #3182ce;
+            transform: translateX(2px);
+        }
+
+        .link-item.selected {
+            background: #3182ce;
+            border-color: #2c5aa0;
+        }
+
+        .link-checkbox {
+            margin-right: 6px;
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+
+        .link-text {
+            color: #e0e0e0;
+            cursor: pointer;
+            flex: 1;
+            font-size: 9px;
+            font-weight: 500;
+        }
+
+        .link-text:hover {
+            color: #00ffff;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .links-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .links-column h4 {
+            margin: 0 0 4px 0;
+            font-size: 10px;
+            color: #3182ce;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .links-container {
+            max-height: 180px;
+            overflow-y: auto;
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 2px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .scrollable-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 4px 6px;
+            border-bottom: 1px solid #4a5568;
+            font-size: 8px;
+            background: #1a202c;
+            border-radius: 2px;
+            margin-bottom: 2px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item.success {
+            border-left: 2px solid #48bb78;
+        }
+
+        .history-item.failed {
+            border-left: 2px solid #e53e3e;
+        }
+
+        .profile-item {
+            padding: 6px;
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 2px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-item:hover {
+            background: #2d3748;
+            border-color: #3182ce;
+        }
+
+        .profile-item.active {
+            background: #3182ce;
+            border-color: #2c5aa0;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 10px;
+            color: #3182ce;
+        }
+
+        .profile-info {
+            font-size: 8px;
+            color: #a0aec0;
+            margin-top: 2px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .profile-actions .btn-sm {
+            flex: 1;
+            padding: 2px 4px;
+            font-size: 8px;
+        }
+
+        .settings-group {
+            margin-bottom: 8px;
+            padding: 6px;
+            background: #1a202c;
+            border-radius: 2px;
+            border: 1px solid #4a5568;
+        }
+
+        .settings-group-title {
+            font-weight: bold;
+            font-size: 9px;
+            color: #3182ce;
+            margin-bottom: 4px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .setting-row label {
+            font-size: 9px;
+            color: #a0aec0;
+        }
+
+        .setting-row input[type="range"] {
+            width: 60px;
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+            color: #3182ce;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 0;
+            background: #2d3748;
+            color: #e0e0e0;
+            padding: 4px 6px;
+            border-radius: 2px;
+            font-size: 8px;
+            white-space: nowrap;
+            z-index: 1000;
+            border: 1px solid #3182ce;
+        }
+
+        .error {
+            color: #e53e3e;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .success {
+            color: #48bb78;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a202c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3182ce;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <span>🚀 Smart Form Filler Pro</span>
+        <div class="header-actions">
+            <button class="header-btn" id="pinBtn" title="Pin popup">📌</button>
+            <button class="header-btn" id="helpBtn" title="Help">❓</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button class="tab active" data-tab="form">📝 Form</button>
+            <button class="tab" data-tab="profiles">👤 Profiles</button>
+            <button class="tab" data-tab="links">🔗 Links</button>
+            <button class="tab" data-tab="history">📊 History</button>
+            <button class="tab" data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <!-- TAB 1: Form -->
+        <div id="form" class="tab-content active">
+            <!-- Bulk Input Section -->
+            <div class="section">
+                <div class="section-title">🎯 Bulk Data Input</div>
+                <div class="input-section">
+                    <label>Format: user|pass|name|phone|email|birth</label>
+                    <textarea id="bulkInput" placeholder="Paste your data here..."></textarea>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="parseData">Parse</button>
+                    <button class="btn btn-secondary" id="randomData">Generate</button>
+                    <button class="btn btn-danger" id="clearData">Clear</button>
+                </div>
+            </div>
+
+            <!-- Quick Generators -->
+            <div class="section">
+                <div class="section-title">⚡ Quick Generators</div>
+                <div class="quick-grid">
+                    <button class="btn btn-secondary quick-btn" id="genUsername">User</button>
+                    <button class="btn btn-secondary quick-btn" id="genPassword">Pass</button>
+                    <button class="btn btn-secondary quick-btn" id="genEmail">Email</button>
+                    <button class="btn btn-secondary quick-btn" id="genPhone">Phone</button>
+                    <button class="btn btn-secondary quick-btn" id="genName">Name</button>
+                    <button class="btn btn-secondary quick-btn" id="genBirthdate">Birth</button>
+                </div>
+                <div class="input-section">
+                    <input type="text" id="nameInput" placeholder="Enter name (LE VAN TEO) to generate username">
+                </div>
+            </div>
+
+            <!-- Form Details -->
+            <div class="section">
+                <div class="collapsible" id="detailsCollapse">
+                    <div class="collapsible-header">
+                        <span>📋 Form Details</span>
+                        <span class="collapsible-arrow">▶</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="mini-inputs">
+                            <input type="text" id="username" placeholder="Username">
+                            <input type="password" id="password" placeholder="Password">
+                            <input type="text" id="fullName" placeholder="Full Name">
+                            <input type="text" id="phone" placeholder="Phone">
+                            <input type="email" id="email" placeholder="Email">
+                            <input type="text" id="birthdate" placeholder="YYYY/MM/DD">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-warning" id="scanForm">🔍 Scan</button>
+                    <button class="btn btn-success" id="autoRegister">✅ Register</button>
+                    <button class="btn btn-secondary" id="autoFill">Fill Form</button>
+                    <button class="btn btn-danger" id="fillAllTabs">All Tabs</button>
+                </div>
+            </div>
+
+            <!-- Undo/Redo Controls -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm" id="undoBtn">↶ Undo</button>
+                    <button class="btn btn-secondary btn-sm" id="redoBtn">↷ Redo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Profiles -->
+        <div id="profiles" class="tab-content">
+            <!-- Create Profile -->
+            <div class="section">
+                <div class="section-title">➕ Create New Profile</div>
+                <div class="input-section">
+                    <label>Profile Name</label>
+                    <input type="text" id="profileName" placeholder="Enter profile name">
+                </div>
+                <button class="btn btn-success" id="createProfile" style="width: 100%;">Create Profile</button>
+            </div>
+
+            <!-- Profile List -->
+            <div class="section">
+                <div class="section-title">📂 Your Profiles</div>
+                <div id="profilesList" class="scrollable-list"></div>
+            </div>
+
+            <!-- Profile Actions -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm" id="exportProfiles">Export</button>
+                    <button class="btn btn-secondary btn-sm" id="importProfiles">Import</button>
+                    <button class="btn btn-danger btn-sm" id="deleteAllProfiles">Delete All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Links -->
+        <div id="links" class="tab-content">
+            <!-- Link Controls -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-warning" id="selectAllLinks">Select All</button>
+                    <button class="btn btn-warning" id="unselectAllLinks">Deselect</button>
+                    <button class="btn btn-success" id="openSelectedLinks">Open Links</button>
+                </div>
+                <div style="text-align: center; color: #a0aec0; font-size: 9px; margin-top: 4px;">
+                    <span id="linksCount">0 links</span> | <span id="selectedCount">0 selected</span>
+                </div>
+            </div>
+
+            <!-- Links Display -->
+            <div class="section">
+                <div class="links-grid">
+                    <div class="links-column">
+                        <h4>🎮 Game Links</h4>
+                        <div id="gameLinksContainer" class="links-container"></div>
+                    </div>
+                    <div class="links-column">
+                        <h4>🎁 Promo Links</h4>
+                        <div id="promoLinksContainer" class="links-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: History -->
+        <div id="history" class="tab-content">
+            <!-- Statistics -->
+            <div class="section">
+                <div class="section-title">📈 Statistics</div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalFills">0</div>
+                        <div>Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="successCount">0</div>
+                        <div>Success</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="successRate">0%</div>
+                        <div>Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Actions -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm" id="exportHistory">Export CSV</button>
+                    <button class="btn btn-secondary btn-sm" id="exportAccounts">Export TXT</button>
+                    <button class="btn btn-danger btn-sm" id="clearHistory">Clear</button>
+                </div>
+            </div>
+
+            <!-- History List -->
+            <div class="section">
+                <div class="section-title">📝 Recent Activity</div>
+                <div id="historyList" class="scrollable-list"></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Settings -->
+        <div id="settings" class="tab-content">
+            <!-- Form Settings -->
+            <div class="settings-group">
+                <div class="settings-group-title">📋 Form Settings</div>
+
+                <div class="setting-row">
+                    <label>Delay (ms)</label>
+                    <input type="range" id="delaySlider" min="50" max="500" value="100" step="50">
+                    <span id="delayValue">100</span>
+                </div>
+
+                <div class="setting-row">
+                    <label>Auto Phone84</label>
+                    <input type="checkbox" id="autoPhone84Checkbox">
+                </div>
+
+                <div class="setting-row">
+                    <label>Auto Submit</label>
+                    <input type="checkbox" id="autoSubmitCheckbox">
+                </div>
+
+                <div class="setting-row">
+                    <label>Highlight Fields</label>
+                    <input type="checkbox" id="highlightCheckbox" checked>
+                </div>
+            </div>
+
+            <!-- UI Settings -->
+            <div class="settings-group">
+                <div class="settings-group-title">🎨 UI Settings</div>
+
+                <div class="setting-row">
+                    <label>Theme</label>
+                    <select id="themeSelect">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label>Font Size</label>
+                    <select id="fontSizeSelect">
+                        <option value="small">Small</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label>Compact Mode</label>
+                    <input type="checkbox" id="compactModeCheckbox">
+                </div>
+            </div>
+
+            <!-- CAPTCHA Settings -->
+            <div class="settings-group">
+                <div class="settings-group-title">🔐 CAPTCHA Settings</div>
+
+                <div class="input-section">
+                    <label>API Key</label>
+                    <input type="password" id="captchaApiKey" placeholder="Enter your CAPTCHA API key">
+                </div>
+
+                <div class="setting-row">
+                    <label>Timeout (sec)</label>
+                    <input type="number" id="captchaTimeout" min="10" max="60" value="30">
+                </div>
+            </div>
+
+            <!-- General Actions -->
+            <div class="section">
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-sm" id="exportSettings">Export</button>
+                    <button class="btn btn-secondary btn-sm" id="importSettings">Import</button>
+                    <button class="btn btn-danger btn-sm" id="resetSettings">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span>
+            <span class="status-indicator"></span>
+            <span id="statusText">Ready</span>
+        </span>
+        <span id="versionText">v2.2.0</span>
+    </div>
+
+    <!-- Scripts - Load in correct order -->
+    <script src="profile-manager.js"></script>
+    <script src="undo-redo.js"></script>
+    <script src="export-manager.js"></script>
+    <script src="settings.js"></script>
+    <script src="link-manager.js"></script>
+    <script src="popup.js"></script>
+
+</body>
+
+</html>
